@@ -1,43 +1,33 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Facebook OAuth Callback</title>
-</head>
-<body>
-<h2>Facebook OAuth Callback</h2>
-<p>If you see this page, the OAuth redirect worked. Processing...</p>
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+    <h1>Facebook Authorization</h1>
+    <p>Processing your authorization, please wait...</p>
+</div>
 
 <script>
-  // 1. Get the 'code' parameter from the URL
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
+    // Extract "code" parameter from the URL
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const error = params.get("error");
 
-  if(code){
-    console.log("Facebook authorization code:", code);
+    if (code) {
+        document.querySelector(".page").innerHTML = `
+            <h1>Authorization Successful</h1>
+            <p>Authorization code received. You can now close this page.</p>
+        `;
 
-    // 2. Send the code to your Make.com webhook
-    const webhookUrl = "https://hook.eu2.make.com/j64u5rj9rtsuczkrllgydwvsyy8xay2h"; // <-- Replace this
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ fb_code: code })
-    })
-    .then(response => {
-      console.log("Webhook sent successfully:", response.status);
-      document.body.innerHTML += "<p>Authorization code sent successfully!</p>";
-    })
-    .catch(error => {
-      console.error("Error sending webhook:", error);
-      document.body.innerHTML += "<p>Error sending webhook. Check console.</p>";
-    });
-
-  } else {
-    console.log("No code found in URL.");
-    document.body.innerHTML += "<p>No authorization code found in URL.</p>";
-  }
+        // Optional: Send the code to your server or Make.com webhook
+        fetch("https://hook.eu2.make.com/j64u5rj9rtsuczkrllgydwvsyy8xay2h", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code })
+        });
+    } else if (error) {
+        document.querySelector(".page").innerHTML = `
+            <h1>Authorization Failed</h1>
+            <p>${error}</p>
+        `;
+    }
 </script>
-</body>
-</html>
+{% endblock %}
