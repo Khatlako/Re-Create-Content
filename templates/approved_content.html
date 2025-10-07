@@ -1,23 +1,43 @@
-{% extends "dashboard_base.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Facebook OAuth Callback</title>
+</head>
+<body>
+<h2>Facebook OAuth Callback</h2>
+<p>If you see this page, the OAuth redirect worked. Processing...</p>
 
-{% block dashboard_content %}
-<h1>Approved Content</h1>
-{% if contents %}
-    <ul>
-    {% for c in contents %}
-        <li>
-            {{ c.text }}
-            {% if c.status == "posted" %}
-                <span style="color: green;">(Posted at {{ c.approved_at }})</span>
-            {% elif c.status == "approved" and c.scheduled_time %}
-                <span style="color: orange;">(Scheduled for {{ c.scheduled_time }})</span>
-            {% else %}
-                <span style="color: gray;">(Approved but not scheduled)</span>
-            {% endif %}
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No approved content yet.</p>
-{% endif %}
-{% endblock %}
+<script>
+  // 1. Get the 'code' parameter from the URL
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+
+  if(code){
+    console.log("Facebook authorization code:", code);
+
+    // 2. Send the code to your Make.com webhook
+    const webhookUrl = "https://hook.eu2.make.com/j64u5rj9rtsuczkrllgydwvsyy8xay2h"; // <-- Replace this
+    fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ fb_code: code })
+    })
+    .then(response => {
+      console.log("Webhook sent successfully:", response.status);
+      document.body.innerHTML += "<p>Authorization code sent successfully!</p>";
+    })
+    .catch(error => {
+      console.error("Error sending webhook:", error);
+      document.body.innerHTML += "<p>Error sending webhook. Check console.</p>";
+    });
+
+  } else {
+    console.log("No code found in URL.");
+    document.body.innerHTML += "<p>No authorization code found in URL.</p>";
+  }
+</script>
+</body>
+</html>
