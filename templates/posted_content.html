@@ -1,0 +1,19 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<h1>Posted Content</h1>
+{% if contents %}
+    <ul>
+    {% for c in contents %}
+        <li>
+            {{ c.text }}
+            {% if c.scheduled_time %}
+                <small>(Posted at: {{ c.scheduled_time.strftime('%Y-%m-%d %H:%M') }})</small>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No content has been posted yet.</p>
+{% endif %}
+{% endblock %}

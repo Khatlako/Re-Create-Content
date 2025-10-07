@@ -1,0 +1,10 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<h1>Upload File</h1>
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" class="form-control" required>
+    <input type="text" name="description" class="form-control" placeholder="Enter description" required>
+    <button type="submit" class="btn">Upload</button>
+</form>
+{% endblock %}

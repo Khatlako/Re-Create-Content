@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body.light-mode {
+            color: #111;
+        }
+        body.dark-mode {
+            color: #fff;
+        }
+
+        /* Navbar styling */
+        nav {
+            display: flex;
+            justify-content: space-between; /* Logo left, links right */
+            gap: 20px;
+            padding: 15px 30px;
+            background: white; /* White navbar */
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        nav a {
+            margin-left: 40px; /* space between links */
+            color: blue;
+            text-decoration: underline; /* add underline */
+            font-weight: bold;
+        }
+
+        
+
+        /* Background container */
+        .background-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: flex-start; /* Text aligned to top-left */
+            justify-content: flex-start;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2));
+            z-index: 1;
+        }
+
+        .dashboard-content {
+            position: relative;
+            z-index: 2;
+            max-width: 700px;
+            padding-left: 60px;
+            padding-top: 40px;
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            background-color: #00aaff;
+            color: #fff;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="dark-mode">
+
+<!-- Navbar -->
+<nav>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BizPortal Logo" height="30">
+    </div>
+    <div class="nav-links">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('upload_file') }}">Upload File</a>
+            <a href="{{ url_for('pending_content') }}">Pending Content</a>
+            <a href="{{ url_for('approved_content') }}">Approved Content</a>
+            <a href="{{ url_for('posted_content') }}">Posted Content</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('signup') }}">Signup</a>
+            <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Background container -->
+<div class="background-container" style="background-image: url('{{ url_for('static', filename='images/hero.jpg') }}');">
+    <div class="background-overlay"></div>
+
+    <!-- Dashboard content -->
+    <div class="dashboard-content">
+        {% block dashboard_content %}{% endblock %}
+    </div>
+</div>
+
+</body>
+</html>

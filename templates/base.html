@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BizPortal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body.light-mode {
+            color: #111;
+        }
+        body.dark-mode {
+            color: #fff;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between; /* Push items to the right */
+            gap: 20px;
+            padding: 15px 30px; /* Bigger padding for height */
+            background: white; /* White navbar */
+    
+            
+        }
+        nav a {
+            margin-left: 40px; /* space between links */
+            color: blue;
+            text-decoration: none;
+            font-weight: bold;
+        }
+       
+        .background-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2));
+            z-index: 1;
+        }
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            padding-left: 60px;
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+   <!-- Navbar -->
+<nav class="navbar">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BizPortal Logo">
+    </div>
+    <div class="nav-links">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('about') }}">About</a>
+        <a href="{{ url_for('signup') }}">Signup</a>
+        <a href="{{ url_for('login') }}">Login</a>
+    </div>
+</nav>
+
+
+    <!-- Background container -->
+    <div class="background-container" style="background-image: url('{{ url_for('static', filename='images/hero.jpg') }}');">
+        <div class="background-overlay"></div>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+</body>
+</html>

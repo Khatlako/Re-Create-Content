@@ -1,0 +1,24 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<h1>Pending Content</h1>
+{% if contents %}
+    <ul>
+    {% for c in contents %}
+        <li>
+            {{ c.text }}
+            <form action="{{ url_for('approve', content_id=c.id) }}" method="POST" style="display:inline">
+                <!-- Add a datetime picker -->
+                <input type="datetime-local" name="schedule_time">
+                <button type="submit" class="btn">Approve</button>
+            </form>
+            <form action="{{ url_for('reject', content_id=c.id) }}" method="POST" style="display:inline">
+                <button type="submit" class="btn">Reject</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No pending content.</p>
+{% endif %}
+{% endblock %}

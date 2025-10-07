@@ -1,0 +1,23 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<h1>Approved Content</h1>
+{% if contents %}
+    <ul>
+    {% for c in contents %}
+        <li>
+            {{ c.text }}
+            {% if c.status == "posted" %}
+                <span style="color: green;">(Posted at {{ c.approved_at }})</span>
+            {% elif c.status == "approved" and c.scheduled_time %}
+                <span style="color: orange;">(Scheduled for {{ c.scheduled_time }})</span>
+            {% else %}
+                <span style="color: gray;">(Approved but not scheduled)</span>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No approved content yet.</p>
+{% endif %}
+{% endblock %}

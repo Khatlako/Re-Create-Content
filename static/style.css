@@ -1,0 +1,61 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    /* Single background image for all pages */
+    background-image: url('/static/images/hero.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 60px;
+    color: #fff;
+    box-sizing: border-box;
+}
+
+.page h1, .page h2 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.page p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    max-width: 700px;
+    line-height: 1.5;
+}
+
+.page .btn {
+    padding: 8px 20px;        /* smaller buttons */
+    border-radius: 20px;
+    background: #fff;          /* white button background */
+    color: #007bff;            /* blue text */
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid #007bff; /* optional border for blue outline */
+    font-size: 0.9rem;         /* slightly smaller text */
+}
+
+.page .btn:hover {
+    background: #007bff;       /* blue on hover */
+    color: #fff;               /* white text on hover */
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+
+.logo img {
+    height: 20px; /* adjust logo size */
+}
+
+.
