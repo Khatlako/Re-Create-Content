@@ -1,5 +1,6 @@
 import os
 import requests
+import pytz
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -7,6 +8,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from apscheduler.schedulers.background import BackgroundScheduler
+
+# -------------------- Timezone --------------------
+LOCAL_TZ = pytz.timezone("Africa/Maseru")  # Lesotho timezone
 
 # -------------------- Flask Setup --------------------
 app = Flask(__name__)
@@ -51,24 +55,28 @@ def load_user(user_id):
 scheduler = BackgroundScheduler()
 
 def post_scheduled_content():
-    with app.app_context():  # Important: app context for DB access
-        now = datetime.utcnow()
+    with app.app_context():
+        now = datetime.now(LOCAL_TZ)
         scheduled_contents = Content.query.filter(
             Content.status == "approved",
             Content.scheduled_time != None,
             Content.scheduled_time <= now
         ).all()
 
+        if scheduled_contents:
+            print(f"[Scheduler] Found {len(scheduled_contents)} scheduled posts")
+        else:
+            print(f"[Scheduler] Found 0 scheduled posts at {now}")
+
         for content in scheduled_contents:
             try:
                 requests.post(WEBHOOK_POST, json={"content": content.text})
                 content.status = "posted"
                 db.session.commit()
-                print(f"✅ Posted scheduled content ID {content.id}")
+                print(f"✅ Posted content ID {content.id}")
             except Exception as e:
                 print("❌ Error sending content:", e)
 
-# Run scheduler every 60 seconds
 scheduler.add_job(func=post_scheduled_content, trigger="interval", seconds=60)
 scheduler.start()
 
@@ -169,25 +177,37 @@ def posted_content():
     posted = Content.query.filter_by(status="posted").all()
     return render_template("posted_content.html", contents=posted)
 
+# -------------------- Approve / Reject --------------------
 @app.route("/approve/<int:content_id>", methods=["POST"])
 @login_required
 def approve(content_id):
     content = Content.query.get_or_404(content_id)
-
     schedule_time = request.form.get("schedule_time")
+    
     if schedule_time:
-        content.scheduled_time = datetime.fromisoformat(schedule_time)
-        content.status = "approved"
-        content.approved_at = datetime.utcnow()
+        try:
+            # Convert HTML datetime-local string to timezone-aware datetime
+            naive_dt = datetime.fromisoformat(schedule_time)
+            aware_dt = LOCAL_TZ.localize(naive_dt)
+
+            content.scheduled_time = aware_dt
+            content.status = "approved"
+            content.approved_at = datetime.now(LOCAL_TZ)
+            flash(f"Content scheduled for {aware_dt.strftime('%Y-%m-%d %H:%M')}", "success")
+        except Exception as e:
+            print("Error parsing schedule time:", e)
+            flash("Invalid schedule time format!", "danger")
     else:
         # Post immediately
         try:
             requests.post(WEBHOOK_POST, json={"content": content.text})
             content.status = "posted"
-            content.approved_at = datetime.utcnow()
+            content.approved_at = datetime.now(LOCAL_TZ)
+            flash("Content approved and posted immediately!", "success")
         except Exception as e:
-            print("Error posting content:", e)
+            print("Error posting content immediately:", e)
             content.status = "error"
+            flash("Failed to post content immediately!", "danger")
 
     db.session.commit()
     return redirect(url_for("pending_content"))
@@ -200,6 +220,19 @@ def reject(content_id):
     db.session.commit()
     flash("Content rejected!", "danger")
     return redirect(url_for('pending_content'))
+
+# -------------------- Facebook OAuth Callback --------------------
+@app.route("/fb_callback")
+def fb_callback():
+    code = request.args.get("code")
+    error = request.args.get("error")
+
+    if code:
+        return render_template("fb_callback.html", content="Authorization successful!")
+    elif error:
+        return render_template("fb_callback.html", content=f"Authorization failed: {error}")
+    else:
+        return render_template("fb_callback.html", content="No response received from Facebook.")
 
 # -------------------- API Endpoint --------------------
 @app.route("/receive_content", methods=["POST"])
