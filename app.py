@@ -1,4 +1,5 @@
 import os
+import uuid
 import requests
 import pytz
 from datetime import datetime
@@ -8,6 +9,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask_migrate import Migrate
 
 # -------------------- Timezone --------------------
 LOCAL_TZ = pytz.timezone("Africa/Maseru")  # Lesotho timezone
@@ -22,34 +24,43 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+migrate = Migrate(app, db)
+
 # -------------------- Webhook URLs --------------------
 WEBHOOK_SEND_FILE = "https://hook.eu2.make.com/utfnnaocu8e6du73i7c2es7qfsxjz2du"
 WEBHOOK_POST = "https://hook.eu2.make.com/ohxlktclpc5btf9vtpssxtuubzl3ca8u"
 
 # -------------------- Models --------------------
 class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
+    # Use UUID as primary key
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    facebook_page = db.Column(db.String(200), nullable=True)  # Optional
 
 class Document(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     filename = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
 
 class Content(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     text = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default="pending")  # pending, approved, rejected, posted
+    status = db.Column(db.String(20), default="pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
     scheduled_time = db.Column(db.DateTime, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+    # Use UUID foreign key
+    user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('contents', lazy=True))
+
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    # UUIDs are stored as strings
+    return User.query.get(str(user_id))
 
 # -------------------- Scheduler --------------------
 scheduler = BackgroundScheduler()
@@ -63,10 +74,7 @@ def post_scheduled_content():
             Content.scheduled_time <= now
         ).all()
 
-        if scheduled_contents:
-            print(f"[Scheduler] Found {len(scheduled_contents)} scheduled posts")
-        else:
-            print(f"[Scheduler] Found 0 scheduled posts at {now}")
+        print(f"[Scheduler] Found {len(scheduled_contents)} scheduled posts at {now}")
 
         for content in scheduled_contents:
             try:
@@ -89,20 +97,37 @@ def index():
 def about():
     return render_template("about.html")
 
-# -------------------- Auth --------------------
+# -------------------- Authentication --------------------
 @app.route('/signup', methods=['GET','POST'])
 def signup():
     if request.method == 'POST':
         username = request.form['username']
         password = generate_password_hash(request.form['password'])
+        facebook_page = request.form.get('facebook_page', '')
+
         if User.query.filter_by(username=username).first():
             flash("Username already exists!", "danger")
             return redirect(url_for('signup'))
-        user = User(username=username, password=password)
+
+        # Create user with UUID
+        user = User(username=username, password=password, facebook_page=facebook_page)
         db.session.add(user)
         db.session.commit()
+
+        # Send new user data to Make.com
+        try:
+            data = {
+                'username': username,
+                'user_id': user.id,
+                'facebook_page': facebook_page
+            }
+            requests.post("https://hook.eu2.make.com/67oht2141ucgn7sjx4oysaj8ybxmhcan", data=data)
+        except Exception as e:
+            print("❌ Failed to send user to Make.com:", e)
+
         flash("Account created successfully!", "success")
         return redirect(url_for('login'))
+
     return render_template("signup.html")
 
 @app.route('/login', methods=['GET','POST'])
@@ -136,6 +161,7 @@ def upload_file():
     if request.method == 'POST':
         file = request.files.get("file")
         description = request.form.get("description", "")
+        facebook_page = request.form.get("facebook_page", "")
 
         if file:
             filename = secure_filename(file.filename)
@@ -146,7 +172,12 @@ def upload_file():
             # Send to Make.com
             with open(filepath, 'rb') as f:
                 files = {'file': (filename, f, file.mimetype)}
-                data = {'description': description, 'user': current_user.username}
+                data = {
+                    'description': description,
+                    'user_id': current_user.id,
+                    'username': current_user.username,
+                    'facebook_page': facebook_page
+                }
                 response = requests.post(WEBHOOK_SEND_FILE, files=files, data=data)
 
             if response.status_code == 200:
@@ -162,34 +193,32 @@ def upload_file():
 @app.route('/pending')
 @login_required
 def pending_content():
-    pending = Content.query.filter_by(status="pending").all()
+    pending = Content.query.filter_by(status="pending", user_id=current_user.id).all()
     return render_template("pending_content.html", contents=pending)
 
 @app.route('/approved')
 @login_required
 def approved_content():
-    approved = Content.query.filter_by(status="approved").all()
+    approved = Content.query.filter_by(status="approved", user_id=current_user.id).all()
     return render_template("approved_content.html", contents=approved)
 
 @app.route('/posted')
 @login_required
 def posted_content():
-    posted = Content.query.filter_by(status="posted").all()
+    posted = Content.query.filter_by(status="posted", user_id=current_user.id).all()
     return render_template("posted_content.html", contents=posted)
 
 # -------------------- Approve / Reject --------------------
-@app.route("/approve/<int:content_id>", methods=["POST"])
+@app.route("/approve/<string:content_id>", methods=["POST"])
 @login_required
 def approve(content_id):
-    content = Content.query.get_or_404(content_id)
+    content = Content.query.filter_by(id=content_id, user_id=current_user.id).first_or_404()
     schedule_time = request.form.get("schedule_time")
-    
+
     if schedule_time:
         try:
-            # Convert HTML datetime-local string to timezone-aware datetime
             naive_dt = datetime.fromisoformat(schedule_time)
             aware_dt = LOCAL_TZ.localize(naive_dt)
-
             content.scheduled_time = aware_dt
             content.status = "approved"
             content.approved_at = datetime.now(LOCAL_TZ)
@@ -198,7 +227,6 @@ def approve(content_id):
             print("Error parsing schedule time:", e)
             flash("Invalid schedule time format!", "danger")
     else:
-        # Post immediately
         try:
             requests.post(WEBHOOK_POST, json={"content": content.text})
             content.status = "posted"
@@ -212,10 +240,10 @@ def approve(content_id):
     db.session.commit()
     return redirect(url_for("pending_content"))
 
-@app.route("/reject/<int:content_id>", methods=["POST"])
+@app.route("/reject/<string:content_id>", methods=["POST"])
 @login_required
 def reject(content_id):
-    content = Content.query.get_or_404(content_id)
+    content = Content.query.filter_by(id=content_id, user_id=current_user.id).first_or_404()
     content.status = "rejected"
     db.session.commit()
     flash("Content rejected!", "danger")
@@ -226,7 +254,6 @@ def reject(content_id):
 def fb_callback():
     code = request.args.get("code")
     error = request.args.get("error")
-
     if code:
         return render_template("fb_callback.html", content="Authorization successful!")
     elif error:
@@ -239,15 +266,24 @@ def fb_callback():
 def receive_content():
     data = request.json
     text = data.get("content")
-    if text:
-        new_content = Content(text=text, status="pending", user_id=None)
-        db.session.add(new_content)
-        db.session.commit()
-        return {"message": "Content received"}, 200
+    username = data.get("username")
+
+    if text and username:
+        user = User.query.filter_by(username=username).first()
+        if user:
+            new_content = Content(
+                text=text,
+                status="pending",
+                user_id=user.id
+            )
+            db.session.add(new_content)
+            db.session.commit()
+            return {"message": "Content received"}, 200
+        return {"message": "User not found"}, 404
     return {"message": "No content received"}, 400
 
 # -------------------- Run App --------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+        db.create_all()  # Create tables
+    app.run(debug=True)   

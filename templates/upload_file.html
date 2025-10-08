@@ -3,8 +3,15 @@
 {% block dashboard_content %}
 <h1>Upload File</h1>
 <form method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" class="form-control" required>
-    <input type="text" name="description" class="form-control" placeholder="Enter description" required>
-    <button type="submit" class="btn">Upload</button>
+    <div style="margin-bottom: 25px;">
+        <input type="file" name="file" class="form-control" required>
+    </div>
+    <div style="margin-bottom: 25px;">
+        <input type="text" name="description" class="form-control" placeholder="Enter description" required>
+    </div>
+    <div style="margin-bottom: 25px;">
+        <input type="text" name="facebook_page" class="form-control" placeholder="Enter Facebook page" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
 </form>
 {% endblock %}

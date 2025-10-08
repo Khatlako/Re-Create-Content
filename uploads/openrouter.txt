@@ -1,0 +1,7 @@
+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
+
+
+
+
+
+deepseek/deepseek-r1-0528-qwen3-8b:free
