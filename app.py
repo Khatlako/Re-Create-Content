@@ -228,7 +228,11 @@ def approve(content_id):
             flash("Invalid schedule time format!", "danger")
     else:
         try:
-            requests.post(WEBHOOK_POST, json={"content": content.text})
+            requests.post(WEBHOOK_POST, json={
+            "content": content.text,
+            "username": content.user.username,
+            "user_id": content.user.id
+            })
             content.status = "posted"
             content.approved_at = datetime.now(LOCAL_TZ)
             flash("Content approved and posted immediately!", "success")
