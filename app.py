@@ -23,7 +23,7 @@ LOCAL_TZ = pytz.timezone("Africa/Maseru")
 
 FB_APP_ID = "1211588177399102"
 FB_APP_SECRET = "154b3c51109bb4169890d544d141d8f0"
-FB_REDIRECT_URI = "https://test-host.co.ls/Econet-Business/facebook/callback" 
+FB_REDIRECT_URI = "https://re-create-content.onrender.com/facebook/callback" 
 
 WEBHOOK_SEND_FILE = "https://hook.eu2.make.com/utfnnaocu8e6du73i7c2es7qfsxjz2du"
 WEBHOOK_POST = "https://hook.eu2.make.com/ohxlktclpc5btf9vtpssxtuubzl3ca8u"
