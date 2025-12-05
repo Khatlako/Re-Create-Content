@@ -268,7 +268,6 @@ def _jinja2_filter_datetime(date, fmt='%Y-%m-%dT%H:%M'):
 
 # -------------------- Facebook OAuth Callback --------------------
 
-
 @app.route("/facebook/callback")
 @login_required
 def facebook_callback():
@@ -284,38 +283,32 @@ def facebook_callback():
         return redirect(url_for("dashboard"))
 
     try:
-        # -----------------------------
-        # 1 Exchange code for short-lived user token
-        # -----------------------------
+        # 1️⃣ Exchange code for short-lived user token
         token_url = (
             f"https://graph.facebook.com/v21.0/oauth/access_token?"
             f"client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}"
             f"&client_secret={FB_APP_SECRET}&code={code}"
         )
         resp = requests.get(token_url, timeout=10).json()
-        short_lived_token = resp.get("access_token")
-        if not short_lived_token:
+        short_lived_user_token = resp.get("access_token")
+        if not short_lived_user_token:
             flash("Could not obtain short-lived user token.", "danger")
             return redirect(url_for("dashboard"))
 
-        # -----------------------------
-        # 2 Exchange for long-lived user token
-        # -----------------------------
+        # 2️⃣ Exchange short-lived user token for long-lived user token
         long_token_url = (
             f"https://graph.facebook.com/v21.0/oauth/access_token?"
             f"grant_type=fb_exchange_token&client_id={FB_APP_ID}"
-            f"&client_secret={FB_APP_SECRET}&fb_exchange_token={short_lived_token}"
+            f"&client_secret={FB_APP_SECRET}&fb_exchange_token={short_lived_user_token}"
         )
         long_resp = requests.get(long_token_url, timeout=10).json()
-        long_lived_token = long_resp.get("access_token")
-        if not long_lived_token:
+        long_lived_user_token = long_resp.get("access_token")
+        if not long_lived_user_token:
             flash("Could not obtain long-lived user token.", "danger")
             return redirect(url_for("dashboard"))
 
-        # -----------------------------
-        # 3 Get user’s Facebook Pages
-        # -----------------------------
-        pages_url = f"https://graph.facebook.com/v21.0/me/accounts?access_token={long_lived_token}"
+        # 3️⃣ Get Pages the user manages
+        pages_url = f"https://graph.facebook.com/v21.0/me/accounts?access_token={long_lived_user_token}"
         pages_resp = requests.get(pages_url, timeout=10).json()
         pages = pages_resp.get("data", [])
 
@@ -323,88 +316,53 @@ def facebook_callback():
             flash("No Facebook Pages found for your account.", "danger")
             return redirect(url_for("dashboard"))
 
-        # For simplicity, auto-select first page (or implement UI selection)
+        # 4️⃣ For simplicity, auto-select first Page (Facebook already controls selection)
         page = pages[0]
         page_id = page["id"]
         page_name = page.get("name")
-        page_token = page.get("access_token")
+        short_lived_page_token = page.get("access_token")
 
-        # -----------------------------
-        # 4 Create system user & system access token
-        # -----------------------------
-        # Note: Only for business accounts. Replace {BUSINESS_ID} with your business ID
-        business_id = "<YOUR_BUSINESS_ID>"
-        sys_user_url = f"https://graph.facebook.com/v21.0/{business_id}/system_users"
-        # Try to create a new system user
-        try:
-            sys_user_resp = requests.post(
-                sys_user_url,
-                params={
-                    "name": f"{current_user.username}_sys",
-                    "role": "ADMIN",
-                    "access_token": long_lived_token
-                },
-                timeout=10
-            ).json()
-            system_user_id = sys_user_resp.get("id")
-        except Exception:
-            system_user_id = None
+        # 5️⃣ Exchange short-lived Page token for long-lived Page token
+        page_token_url = (
+            f"https://graph.facebook.com/v21.0/oauth/access_token?"
+            f"grant_type=fb_exchange_token&client_id={FB_APP_ID}"
+            f"&client_secret={FB_APP_SECRET}&fb_exchange_token={short_lived_page_token}"
+        )
+        page_resp = requests.get(page_token_url, timeout=10).json()
+        long_lived_page_token = page_resp.get("access_token")
+        if not long_lived_page_token:
+            flash("Could not obtain long-lived Page token.", "danger")
+            return redirect(url_for("dashboard"))
 
-        # -----------------------------
-        # 5 Generate system user access token
-        # -----------------------------
-        if system_user_id:
-            token_resp = requests.post(
-                f"https://graph.facebook.com/v21.0/{system_user_id}/access_tokens",
-                params={
-                    "type": "ADMIN",
-                    "business": business_id,
-                    "app": FB_APP_ID,
-                    "scope": "pages_manage_posts,pages_read_engagement,pages_show_list",
-                    "access_token": long_lived_token
-                },
-                timeout=10
-            ).json()
-            system_token = token_resp.get("access_token")
-        else:
-            system_token = None
-
-        # -----------------------------
-        # 6 Save everything to DB
-        # -----------------------------
+        # 6️⃣ Save Page info and long-lived Page token to DB
         current_user.facebook_page_id = page_id
-        current_user.facebook_page_token = page_token
-        current_user.facebook_long_lived_token = long_lived_token
+        current_user.facebook_page_token = long_lived_page_token
         db.session.commit()
 
-        # -----------------------------
-        # 7 Send tokens to Make.com
-        # -----------------------------
+        # 7️⃣ Send Page token to Make.com
         payload = {
             "user_id": current_user.id,
             "username": current_user.username,
             "page_id": page_id,
             "page_name": page_name,
-            "page_access_token": page_token,
-            "long_lived_user_token": long_lived_token,
-            "system_user_id": system_user_id,
-            "system_user_token": system_token
+            "page_access_token": long_lived_page_token
         }
 
         try:
             r = requests.post(MAKE_WEBHOOK_URL, json=payload, timeout=10)
             r.raise_for_status()
         except Exception as e:
-            print("❌ Failed to send tokens to Make.com:", e)
-            flash("Facebook connected, but failed to send tokens to Make.com.", "warning")
+            print("❌ Failed to send token to Make.com:", e)
+            flash("Facebook connected, but failed to send token to Make.com.", "warning")
             return redirect(url_for("dashboard"))
 
-        flash("Facebook Page connected successfully! Tokens sent to Make.com.", "success")
+        flash("Facebook Page connected successfully! Token sent to Make.com.", "success")
         return redirect(url_for("dashboard"))
 
     except requests.exceptions.RequestException as e:
         flash(f"Facebook connection error: {str(e)}", "danger")
         return redirect(url_for("dashboard"))
+
 
 
 # -------------------- Facebook Page Selection --------------------
