@@ -1,19 +1,30 @@
 {% extends "dashboard_base.html" %}
 
+{% block title %}Approved Content - BizPortal{% endblock %}
+
 {% block dashboard_content %}
 <h1>Approved Content</h1>
+
 {% if contents %}
-    <ul>
+<div class="calendar-grid">
     {% for c in contents %}
-        <li>
-            {{ c.text }}
-            {% if c.scheduled_time %}
-                <small>(Scheduled at: {{ c.scheduled_time.strftime('%Y-%m-%d %H:%M') }})</small>
-            {% endif %}
-        </li>
+    <div class="calendar-card">
+        <div style="white-space:pre-wrap;">{{ c.text }}</div>
+
+        {% if c.scheduled_time %}
+        <div class="schedule-info">
+            <i class="far fa-clock"></i>
+            Scheduled at: {{ c.scheduled_time.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+        {% else %}
+        <div class="schedule-info" style="color:#ffd;">
+            <i class="fas fa-check-circle"></i> Approved (No schedule)
+        </div>
+        {% endif %}
+    </div>
     {% endfor %}
-    </ul>
+</div>
 {% else %}
-    <p>No approved content.</p>
+<p>No approved content.</p>
 {% endif %}
 {% endblock %}

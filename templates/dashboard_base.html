@@ -1,116 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body.light-mode {
-            color: #111;
-        }
-        body.dark-mode {
-            color: #fff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/hero0.png') }}">
 
-        /* Navbar styling */
-        nav {
-            display: flex;
-            justify-content: space-between; /* Logo left, links right */
-            gap: 20px;
-            padding: 15px 30px;
-            background: white; /* White navbar */
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            position: relative;
-            z-index: 2;
-        }
-        nav a {
-            margin-left: 40px; /* space between links */
-            color: blue;
-            text-decoration: underline; /* add underline */
-            font-weight: bold;
-        }
+<style>
+/* --- Basic Styles --- */
+body.light-mode { color: #111; background:#f0f2f5; font-family: 'Segoe UI', sans-serif; }
+body.dark-mode { color: #fff; background:#111; font-family: 'Segoe UI', sans-serif; }
 
-        
+/* Navbar */
+nav { display: flex; justify-content: space-between; align-items: center; gap: 50px; padding: 15px 30px; background: white; border-bottom: 1px solid #ddd; z-index: 1000; }
+nav .logo img { height: 40px; }
+nav .nav-links { display: flex; align-items: center; gap: 12px; }
+nav .nav-links a { background: #1877F2; padding: 6px 14px; border-radius: 6px; color: white !important; font-size: 0.65rem; font-weight: 600; text-decoration: none !important; transition: background .2s; border: 1px solid #0d47a1; }
+nav .nav-links a:hover { background: #0d47a1; }
 
-        /* Background container */
-        .background-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: flex-start; /* Text aligned to top-left */
-            justify-content: flex-start;
-        }
+/* Subscribe button style */
+.subscribe-btn { background: #f0ad4e; color: #fff !important; padding: 6px 14px; border-radius: 6px; font-size: 0.65rem; font-weight: 600; text-decoration: none !important; border: 1px solid #d6953f; transition: background 0.2s; }
+.subscribe-btn:hover { background: #d4882f; }
 
-        .background-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2));
-            z-index: 1;
-        }
+/* Sidebar */
+.sidebar { position: fixed; top:0; left:-150px; height:100%; width:150px; background:#1877F2; color:#fff; padding-top:60px; transition:left 0.3s ease; z-index:9999; display:flex; flex-direction:column; }
+.sidebar.active { left:0; }
+.sidebar a { padding:15px 20px; display:flex; align-items:center; gap:15px; color:#fff; text-decoration:none; font-weight:600; transition: background 0.2s; }
+.sidebar a:hover, .sidebar a.active-link { background: #145ca1; }
+.sidebar a span.text { display:inline; }
+.sidebar-toggle { width: 25px; height: 60px; background:#1877F2; color:#fff; border-radius:0 5px 5px 0; text-align:center; line-height:60px; cursor:pointer; position: fixed; top:50%; left:0; transform: translateY(-50%); z-index:10001; }
 
-        .dashboard-content {
-            position: relative;
-            z-index: 2;
-            max-width: 700px;
-            padding-left: 60px;
-            padding-top: 40px;
-            color: white;
-        }
+/* Background container */
+.background-container { position: relative; width: 100%; min-height: 100vh; overflow-y: auto; margin-left: 0; transition: margin-left 0.3s ease; }
+.background-slide { position: absolute; top:0; left:0; width:100%; height:100%; background-size: cover; background-position: center; opacity:0; transition: opacity 2s ease-in-out; }
+.background-slide.active { opacity:1; }
+.background-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index:1; }
 
-        .btn {
-            padding: 10px 20px;
-            border-radius: 6px;
-            background-color: #00aaff;
-            color: #fff;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-    </style>
+/* Content */
+.content { position: relative; z-index:2; width:100%; max-width:1200px; padding:40px 20px; color:white; margin:0 auto; }
+h1 { font-weight:700; margin-bottom:30px; color:#fff; }
+p { font-size:1.25rem; font-weight:600; line-height:1.8; max-width:800px; color:white; }
+
+/* Insights button */
+.insights-btn { display: inline-block; margin-top: 20px; background: #1877F2; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s; }
+.insights-btn:hover { background: #0d47a1; }
+
+/* Media queries */
+@media (max-width: 1024px) { nav { flex-direction: column; align-items: flex-start; gap: 10px; padding: 10px 20px; } nav .nav-links { flex-wrap: wrap; gap: 8px; } }
+</style>
 </head>
-<body class="dark-mode">
+
+<body class="light-mode">
 
 <!-- Navbar -->
-<nav>
+<nav class="navbar">
     <div class="logo">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BizPortal Logo" height="30">
+        <img src="{{ url_for('static', filename='images/econet.png') }}" alt="BizPortal Logo">
     </div>
     <div class="nav-links">
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('upload_file') }}">Upload File</a>
-            <a href="{{ url_for('pending_content') }}">Pending Content</a>
-            <a href="{{ url_for('approved_content') }}">Approved Content</a>
-            <a href="{{ url_for('posted_content') }}">Posted Content</a>
-            <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('about') }}">About</a>
-            <a href="{{ url_for('signup') }}">Signup</a>
-            <a href="{{ url_for('login') }}">Login</a>
+        {% if not current_user.has_active_subscription %}
+            <a href="{{ url_for('pricing') }}" class="subscribe-btn">Subscribe now</a>
+        {% endif %}
+
+        {% if current_user.has_active_subscription %}
+            <a href="{{ url_for('upload_file') }}">Upload</a>
+            <a href="{{ url_for('pending_content') }}">Pending</a>
+            <a href="{{ url_for('approved_content') }}">Approved</a>
+            <a href="{{ url_for('posted_content') }}">Posted</a>
         {% endif %}
     </div>
 </nav>
 
-<!-- Background container -->
-<div class="background-container" style="background-image: url('{{ url_for('static', filename='images/hero.jpg') }}');">
+<!-- Sidebar -->
+{% if current_user.is_authenticated %}
+<div class="sidebar" id="sidebar">
+    <a href="{{ url_for('profile') }}" class="{% if request.endpoint=='profile' %}active-link{% endif %}">
+        <i class="fas fa-user"></i> <span class="text">Profile</span>
+    </a>
+    <a href="{{ url_for('settings') }}" class="{% if request.endpoint=='settings' %}active-link{% endif %}">
+        <i class="fas fa-cog"></i> <span class="text">Settings</span>
+    </a>
+    <a href="{{ url_for('logout') }}">
+        <i class="fas fa-right-from-bracket"></i> 
+        <span class="text">Logout</span>
+    </a>
+</div>
+<div class="sidebar-toggle">&#9776;</div>
+{% endif %}
+
+<!-- Background -->
+<div class="background-container">
+    <div class="background-slide active" style="background-image: url('{{ url_for('static', filename='images/hero11.jpg') }}');"></div>
+    <div class="background-slide" style="background-image: url('{{ url_for('static', filename='images/hero4.jpg') }}');"></div>
+    <div class="background-slide" style="background-image: url('{{ url_for('static', filename='images/hero5.jpg') }}');"></div>
     <div class="background-overlay"></div>
 
-    <!-- Dashboard content -->
-    <div class="dashboard-content">
-        {% block dashboard_content %}{% endblock %}
+    <div class="content" style="padding-top:100px;">
+        {% block dashboard_content %}
+        <h1>Welcome, {{ current_user.username }}</h1>
+        <p>
+            Welcome to the digital playground! Marketing here isn’t just about showing up—it’s about making waves and sparking real connections. 
+            From social media chatter that turns heads, to clever tactics that flip casual clicks into loyal fans, 
+            your brand can grow smarter, faster, and bolder. Hop into your dashboard, track the action, tweak your moves, 
+            and ride the data wave to stay ahead of the game.
+        </p>
+
+
+        {% if current_user.has_active_subscription %}
+            <a href="{{ url_for('page_insights_view') }}" class="insights-btn">Go To Insights' Page</a>
+        {% endif %}
+        {% endblock %}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
+    }
+
+    const slides = document.querySelectorAll('.background-slide');
+    let currentSlide = 0;
+    setInterval(() => {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+    }, 5000);
+});
+</script>
 
 </body>
 </html>

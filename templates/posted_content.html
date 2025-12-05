@@ -1,19 +1,24 @@
 {% extends "dashboard_base.html" %}
 
+{% block title %}Posted Content - BizPortal{% endblock %}
+
 {% block dashboard_content %}
 <h1>Posted Content</h1>
+
 {% if contents %}
-    <ul>
+<div class="calendar-grid">
     {% for c in contents %}
-        <li>
-            {{ c.text }}
-            {% if c.scheduled_time %}
-                <small>(Posted at: {{ c.scheduled_time.strftime('%Y-%m-%d %H:%M') }})</small>
-            {% endif %}
-        </li>
+    <div class="calendar-card">
+        <div style="white-space:pre-wrap;">{{ c.text }}</div>
+
+        <div class="posted-info">
+            <i class="fas fa-check-circle"></i>
+            Posted at: {{ c.scheduled_time.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+    </div>
     {% endfor %}
-    </ul>
+</div>
 {% else %}
-    <p>No content has been posted yet.</p>
+<p>No posted content yet.</p>
 {% endif %}
 {% endblock %}

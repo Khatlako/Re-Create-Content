@@ -1,17 +1,66 @@
 {% extends "dashboard_base.html" %}
 
 {% block dashboard_content %}
+
+<style>
+/* Upload button styling */
+.btn-primary {
+    background: white !important;
+    color: #1877F2 !important;
+    border: 2px solid #1877F2 !important;
+    padding: 10px 22px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: 0.25s ease-in-out;
+}
+
+.btn-primary:hover {
+    background: #1877F2 !important;
+    color: white !important;
+    border-color: #0d47a1 !important;
+    cursor: pointer;
+}
+
+/* Form styling for consistency */
+.form-control {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    margin-top: 6px;
+    outline: none;
+
+    max-width: 400px; /* field size limit */
+}
+.form-control:focus {
+    border-color: #1877F2;
+    box-shadow: 0 0 0 3px rgba(24,119,242,0.15);
+}
+}
+</style>
+
+
 <h1>Upload File</h1>
+
 <form method="POST" enctype="multipart/form-data">
+
     <div style="margin-bottom: 25px;">
+        <label>Choose File</label>
         <input type="file" name="file" class="form-control" required>
     </div>
+
     <div style="margin-bottom: 25px;">
+        <label>Description</label>
         <input type="text" name="description" class="form-control" placeholder="Enter description" required>
     </div>
+
     <div style="margin-bottom: 25px;">
+        <label>Facebook Page</label>
         <input type="text" name="facebook_page" class="form-control" placeholder="Enter Facebook page" required>
     </div>
+
     <button type="submit" class="btn btn-primary">Upload</button>
 </form>
+
 {% endblock %}
+

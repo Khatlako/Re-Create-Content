@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+<style>
+    body {
+        margin:0;
+        font-family: 'Segoe UI', sans-serif;
+        color: #333;
+        overflow-x: hidden;
+    }
+
+    /* Video background */
+    .video-bg {
+        position: fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        object-fit: cover;
+        z-index: -2;
+    }
+
+    /* Overlay to make content readable */
+    .overlay {
+        position: fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background: rgba(255,255,255,0.5);
+        z-index: -1;
+    }
+
+    /* Navbar */
+    nav {
+        position: fixed;
+        top:0;
+        left:0;
+        width:100%;
+        background:white;
+        display:flex;
+        align-items:center;
+        padding: 10px 30px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        z-index:1000;
+    }
+    nav .logo img {
+        height:40px;
+    }
+
+    .container {
+        min-height: 100vh;
+        padding: 100px 20px 60px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .settings-box {
+        width: 100%;
+        max-width: 900px;
+        background: rgba(255,255,255,0.95);
+        border-radius: 15px;
+        padding: 40px 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .back-btn {
+        display:inline-block;
+        margin-bottom:30px;
+        padding:10px 18px;
+        background: #1877F2;
+        color:#fff;
+        font-weight:600;
+        border-radius:8px;
+        text-decoration:none;
+        transition:0.3s;
+    }
+    .back-btn:hover { background: #1256b3; }
+
+    h1 {
+        text-align:center;
+        font-size:2.2rem;
+        margin-bottom: 50px;
+        font-weight:700;
+        color: #4B0082;
+    }
+
+    .tabs {
+        display:flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+    }
+
+    .tab-btn {
+        padding:12px 28px;
+        border:none;
+        border-radius:8px;
+        background: #f0f0f0;
+        color:#4B0082;
+        cursor:pointer;
+        font-weight:600;
+        font-size:1rem;
+        transition:0.3s;
+    }
+    .tab-btn:hover { background: #e0e0e0; }
+    .tab-btn.facebook { background: #1877F2; color:#fff; }
+    .tab-btn.facebook:hover { background:#1256b3; }
+
+    .tab-section {
+        display:none;
+        padding:30px;
+        border-radius:8px;
+        border:1px solid #ddd;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    h2 {
+        font-size:1.5rem;
+        font-weight:700;
+        border-bottom:1px solid #ccc;
+        padding-bottom:8px;
+        margin-bottom:20px;
+    }
+
+    label {
+        font-weight:600;
+        margin-bottom:5px;
+    }
+
+    input {
+        padding:12px;
+        border-radius:6px;
+        border:1px solid #ccc;
+        font-size:1rem;
+        width:100%;
+    }
+
+    button, .btn {
+        padding:10px 20px;
+        border:none;
+        border-radius:6px;
+        font-weight:600;
+        cursor:pointer;
+        transition:0.3s;
+    }
+    button.update { background:#4B0082; color:#fff; }
+    .btn.change { background:#ff9800; color:#fff; text-decoration:none; display:inline-block; }
+    .btn.connect { background:#1877F2; color:#fff; text-decoration:none; display:inline-block; }
+    .btn.disconnect { background:#e53935; color:#fff; display:inline-block; }
+
+    ul.flash-messages { margin-top:25px; list-style:none; padding-left:0; }
+    ul.flash-messages li { font-weight:600; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<!-- Video Background -->
+<video class="video-bg" autoplay muted loop>
+    <source src="{{ url_for('static', filename='images/vid1.mp4') }}" type="video/mp4">
+</video>
+
+
+<!-- Navbar -->
+<nav>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Econet Business Logo">
+    </div>
+</nav>
+
+<div class="container">
+    <div class="settings-box">
+
+        <a href="{{ url_for('dashboard') }}" class="back-btn">&larr; Back to Dashboard</a>
+
+        <h1>Settings</h1>
+
+        <div class="tabs">
+            <button class="tab-btn" onclick="openTab('password')">Change Password</button>
+            <button class="tab-btn facebook" onclick="openTab('facebook')">Facebook Page</button>
+        </div>
+
+        <div id="tab-content">
+
+            <!-- Password Tab -->
+            <section id="password-tab" class="tab-section">
+                <h2>Change Password</h2>
+                <form method="POST" action="{{ url_for('change_password') }}" style="display:flex; flex-direction: column; gap: 20px;">
+                    <div style="display:flex; flex-direction: column;">
+                        <label for="current_password">Current Password</label>
+                        <input type="password" name="current_password" id="current_password" placeholder="Enter current password" required>
+                    </div>
+
+                    <div style="display:flex; flex-direction: column;">
+                        <label for="new_password">New Password</label>
+                        <input type="password" name="new_password" id="new_password" placeholder="Enter new password" required>
+                    </div>
+
+                    <button type="submit" class="update">Update Password</button>
+                </form>
+            </section>
+
+            <!-- Facebook Tab -->
+            <section id="facebook-tab" class="tab-section">
+                <h2>Facebook Page</h2>
+                <p>Connect a Facebook Page to enable automatic posting, analytics tracking, and easier content management. You can change the connected page or disconnect it at any time.</p>
+
+                {% if current_user.facebook_page_id %}
+                    <div style="margin-bottom:15px; padding:10px; background:#e0e0e0; border-radius:6px; font-weight:600;">
+                        ✅ Connected Page:
+                        {% if current_user.facebook_page_name %}
+                            {{ current_user.facebook_page_name }}{% if current_user.facebook_page_id %} (ID: {{ current_user.facebook_page_id }}){% endif %}
+                        {% else %}
+                            ID: {{ current_user.facebook_page_id }}
+                        {% endif %}
+                    </div>
+
+                    <div style="display:flex; gap:15px; flex-wrap: wrap;">
+                        <a href="{{ url_for('change_facebook_page') }}" class="btn change">Change Page</a>
+                        <form action="{{ url_for('disconnect_facebook_page') }}" method="POST" style="display:inline-block;">
+                            <button type="submit" class="btn disconnect">Disconnect Page</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('connect_facebook') }}" class="btn connect">Connect Facebook Page</a>
+                {% endif %}
+            </section>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li style="color: {% if category=='danger' %}#ff6b6b{% elif category=='success' %}#00a86b{% else %}#333{% endif %};">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTab(tabName) {
+        const tabs = document.querySelectorAll('.tab-section');
+        tabs.forEach(t => t.style.display = 'none'); // hide all
+        document.getElementById(tabName + '-tab').style.display = 'block';
+    }
+
+    // Open first tab by default
+    openTab('password');
+</script>
+
+</body>
+</html>

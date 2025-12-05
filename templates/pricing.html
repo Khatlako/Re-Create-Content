@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Packages - Econet-Business{% endblock %}
+
+{% block content %}
+<div style="padding: 40px; max-width: 1400px; margin: auto; color:white;">
+    <h1 style="margin-bottom: 30px;">Subscription Packages</h1>
+
+    <div style="
+        display: grid; 
+        grid-template-columns: repeat(4, minmax(240px, 1fr)); 
+        gap: 30px;
+    ">
+
+        <!-- STARTUP PACKAGE -->
+        <div style="background: rgba(255,255,255,0.15); padding: 30px; border-radius: 12px; text-align:center;">
+            <h2>Startup</h2>
+            <p>✔ Access to basic features</p>
+            <p>✔ Upload 5 documents/day</p>
+            <p>✔ Email support</p>
+
+            <form action="{{ url_for('subscribe_startup') }}" method="POST" style="margin-top:20px;">
+                <input type="text" name="phone" placeholder="Ecocash Number"
+                       style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:none;">
+                
+                <select name="billing_period" style="width:100%; padding:10px; border-radius:6px; margin-bottom:10px;">
+                    <option value="monthly">Monthly - M1</option>
+                    <option value="annual">Annual - M1</option>
+                </select>
+
+                <button type="submit" 
+                    style="background:#1877F2; padding:10px 20px; border:none; border-radius:6px; color:white; font-weight:600; cursor:pointer;">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+
+        <!-- GROWTH / STANDARD -->
+        <div style="background: rgba(255,255,255,0.15); padding: 30px; border-radius: 12px; text-align:center;">
+            <h2>Growth</h2>
+            <p>✔ All Startup features</p>
+            <p>✔ Upload 20 documents/day</p>
+            <p>✔ Priority email support</p>
+            <p>✔ Access to analytics dashboard</p>
+
+            <form action="{{ url_for('subscribe_growth') }}" method="POST" style="margin-top:20px;">
+                <input type="text" name="phone" placeholder="Ecocash Number"
+                       style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:none;">
+                
+                <select name="billing_period" style="width:100%; padding:10px; border-radius:6px; margin-bottom:10px;">
+                    <option value="monthly">Monthly - M1</option>
+                    <option value="annual">Annual - M1</option>
+                </select>
+
+                <button type="submit" 
+                    style="background:#1877F2; padding:10px 20px; border:none; border-radius:6px; color:white; font-weight:600; cursor:pointer;">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+
+        <!-- PRO PACKAGE -->
+        <div style="background: rgba(255,255,255,0.15); padding: 30px; border-radius: 12px; text-align:center;">
+            <h2>Pro</h2>
+            <p>✔ All Growth features</p>
+            <p>✔ Unlimited uploads</p>
+            <p>✔ 24/7 support</p>
+            <p>✔ Advanced analytics</p>
+            <p>✔ Team collaboration</p>
+
+            <form action="{{ url_for('subscribe_pro') }}" method="POST" style="margin-top:20px;">
+                <input type="text" name="phone" placeholder="Ecocash Number"
+                       style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:none;">
+                
+                <select name="billing_period" style="width:100%; padding:10px; border-radius:6px; margin-bottom:10px;">
+                    <option value="monthly">Monthly - M1</option>
+                    <option value="annual">Annual - M1</option>
+                </select>
+
+                <button type="submit" 
+                    style="background:#1877F2; padding:10px 20px; border:none; border-radius:6px; color:white; font-weight:600; cursor:pointer;">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+
+        <!-- FREE TRIAL -->
+        {% if not current_user.used_trial %}
+        <div style="background: rgba(255,255,255,0.15); padding: 30px; border-radius: 12px; text-align:center;">
+            <h2>Free Trial</h2>
+            <p>✔ 14 Days Access</p>
+            <p>✔ All basic features</p>
+
+            <a href="{{ url_for('subscribe_trial') }}"
+               style="display:inline-block; background:#28a745; padding:10px 20px; border-radius:6px; color:white; font-weight:600; margin-top:20px;">
+               Activate Free Trial
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

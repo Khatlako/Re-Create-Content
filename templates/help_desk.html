@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Help Desk</h1>
+
+<p>Welcome to the Econet Business Help Desk. Here you can find answers to common questions and get in touch with our support team.</p>
+
+<h2>Frequently Asked Questions (FAQs)</h2>
+<ul>
+    <li><strong>How do I create an account?</strong> – Click on the Signup button in the top navigation and fill in your details.</li>
+    <li><strong>How can I upload content?</strong> – Navigate to your dashboard and select "Upload" to submit files or posts.</li>
+    <li><strong>How do I check pending or approved content?</strong> – Use the "Pending" or "Approved" sections in your dashboard sidebar.</li>
+    <li><strong>Can I change my subscription?</strong> – Visit the "Settings" page to manage your subscription plans.</li>
+</ul>
+
+<h2>Contact Support</h2>
+<p>If your question isn’t answered above, our support team is ready to assist you:</p>
+<ul>
+    <li><strong>Email:</strong> <a href="mailto:support@econetbusiness.com">support@econetbusiness.com</a></li>
+    <li><strong>Phone:</strong> +266 123 456 789</li>
+    <li><strong>Live Chat:</strong> Available on your dashboard between 9:00 AM and 5:00 PM</li>
+</ul>
+
+<h2>Additional Resources</h2>
+<p>Check our <a href="{{ url_for('about') }}">About</a> and <a href="{{ url_for('contact') }}">Contact</a> pages for more information.</p>
+{% endblock %}

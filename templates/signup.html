@@ -4,7 +4,8 @@
     <h1 style="margin-bottom: 30px;">Signup</h1>
     <form method="POST" action="{{ url_for('signup') }}" style="display: flex; flex-direction: column; gap: 15px;">
         <input type="text" name="username" class="form-control" placeholder="Username" required>
-         <input type="text" name="facebook_page" class="form-control" placeholder="Facebook page name" required>
+        <input type="text" name="facebook_page" class="form-control" placeholder="Facebook page name" required>
+        <input type="email" name="email" class="form-control" placeholder="Email" required>
         <input type="password" name="password" class="form-control" placeholder="Password" required>
         <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password" required>
         <button type="submit" class="btn">Create Account</button>
